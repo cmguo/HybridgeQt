@@ -19,7 +19,7 @@ public:
 protected:
     virtual MetaObject *metaObject(const Object *object) const override;
     virtual std::string createUuid() const override;
-    virtual MetaObject::Connection connect(const Object *object, int signalIndex) override;
+    virtual MetaObject::Connection connect(const Object *object, size_t signalIndex) override;
     virtual bool disconnect(const MetaObject::Connection &c) override;
     virtual void startTimer(int msec) override;
     virtual void stopTimer() override;

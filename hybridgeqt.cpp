@@ -30,11 +30,11 @@ std::string HybridgeQt::createUuid() const
     return QUuid::createUuid().toString().toUtf8().data();
 }
 
-MetaObject::Connection HybridgeQt::connect(const Object *object, int signalIndex)
+MetaObject::Connection HybridgeQt::connect(const Object *object, size_t signalIndex)
 {
     static const int memberOffset = QTimer::staticMetaObject.methodCount();
-    QMetaObject::connect(static_cast<QObject const *>(object), signalIndex,
-                         &timer_, memberOffset + signalIndex, Qt::AutoConnection, 0);
+    QMetaObject::connect(static_cast<QObject const *>(object), static_cast<int>(signalIndex),
+                         &timer_, memberOffset + static_cast<int>(signalIndex), Qt::AutoConnection, nullptr);
     //QObject::connect(object, signalIndex, object, [] )
     return MetaObject::Connection(object, signalIndex);
 }
@@ -42,7 +42,7 @@ MetaObject::Connection HybridgeQt::connect(const Object *object, int signalIndex
 bool HybridgeQt::disconnect(const MetaObject::Connection &c)
 {
     QObject const * obj = static_cast<QObject const *>(c.object());
-    return QObject::disconnect(obj, obj->metaObject()->method(c.signalIndex()),
+    return QObject::disconnect(obj, obj->metaObject()->method(static_cast<int>(c.signalIndex())),
                         static_cast<QObject*>(nullptr), QMetaMethod());
 }
 
@@ -72,7 +72,7 @@ void HybridgeQt::dispatch(const QObject *object, const int signalIdx, void **arg
         }
         arguments.emplace_back(Variant::toValue(arg));
     }
-    signal(object, signalIdx, std::move(arguments));
+    signal(object, static_cast<size_t>(signalIdx), std::move(arguments));
 }
 
 int HybridgeQt::Timer::qt_metacall(QMetaObject::Call call, int methodId, void **args)

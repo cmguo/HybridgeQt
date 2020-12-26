@@ -8,13 +8,13 @@ QtMetaObject::QtMetaObject(const QMetaObject &meta)
     : meta_(meta)
 {
     for (int i = 0; i < meta_.enumeratorCount(); ++i) {
-        metaEnums_.append(QtMetaEnum(meta_.enumerator(i)));
+        metaEnums_.push_back(QtMetaEnum(meta_.enumerator(i)));
     }
     for (int i = 0; i < meta_.methodCount(); ++i) {
-        metaMethods_.append(QtMetaMethod(meta_.method(i)));
+        metaMethods_.push_back(QtMetaMethod(meta_.method(i)));
     }
     for (int i = 0; i < meta_.propertyCount(); ++i) {
-        metaProps_.append(QtMetaProperty(meta_.property(i), metaMethods_));
+        metaProps_.push_back(QtMetaProperty(meta_.property(i), metaMethods_));
     }
 }
 
@@ -23,41 +23,42 @@ const char *QtMetaObject::className() const
     return meta_.className();
 }
 
-int QtMetaObject::propertyCount() const
+size_t QtMetaObject::propertyCount() const
 {
     return metaProps_.size();
 }
 
-const MetaProperty &QtMetaObject::property(int index) const
+const MetaProperty &QtMetaObject::property(size_t index) const
 {
     return metaProps_.at(index);
 }
 
-int QtMetaObject::methodCount() const
+size_t QtMetaObject::methodCount() const
 {
-    return metaMethods_.size();
+    return static_cast<size_t>(metaMethods_.size());
 }
 
-const MetaMethod &QtMetaObject::method(int index) const
+const MetaMethod &QtMetaObject::method(size_t index) const
 {
     return metaMethods_.at(index);
 }
 
-int QtMetaObject::enumeratorCount() const
+size_t QtMetaObject::enumeratorCount() const
 {
     return metaEnums_.size();
 }
 
-const MetaEnum &QtMetaObject::enumerator(int index) const
+const MetaEnum &QtMetaObject::enumerator(size_t index) const
 {
     return metaEnums_.at(index);
 }
 
 static QtMetaMethod emptyMethod = QMetaMethod();
 
-QtMetaProperty::QtMetaProperty(const QMetaProperty &meta, QVector<QtMetaMethod> const & methods)
+QtMetaProperty::QtMetaProperty(const QMetaProperty &meta, std::vector<QtMetaMethod> const & methods)
     : meta_(meta)
-    , signal_(meta.hasNotifySignal() ? methods.at(meta.notifySignalIndex()) : emptyMethod)
+    , signal_(meta.hasNotifySignal()
+              ? methods.at(static_cast<size_t>(meta.notifySignalIndex())) : emptyMethod)
 {
 }
 
@@ -86,9 +87,9 @@ bool QtMetaProperty::hasNotifySignal() const
     return meta_.hasNotifySignal();
 }
 
-int QtMetaProperty::notifySignalIndex() const
+size_t QtMetaProperty::notifySignalIndex() const
 {
-    return meta_.notifySignalIndex();
+    return static_cast<size_t>(meta_.notifySignalIndex());
 }
 
 const MetaMethod &QtMetaProperty::notifySignal() const
@@ -131,9 +132,9 @@ bool QtMetaMethod::isPublic() const
     return meta_.access() == QMetaMethod::Public;
 }
 
-int QtMetaMethod::methodIndex() const
+size_t QtMetaMethod::methodIndex() const
 {
-    return meta_.methodIndex();
+    return static_cast<size_t>(meta_.methodIndex());
 }
 
 const char *QtMetaMethod::methodSignature() const
@@ -141,19 +142,19 @@ const char *QtMetaMethod::methodSignature() const
     return meta_.methodSignature();
 }
 
-int QtMetaMethod::parameterCount() const
+size_t QtMetaMethod::parameterCount() const
 {
-    return meta_.parameterCount();
+    return static_cast<size_t>(meta_.parameterCount());
 }
 
-int QtMetaMethod::parameterType(int index) const
+int QtMetaMethod::parameterType(size_t index) const
 {
-    return meta_.parameterType(index);
+    return meta_.parameterType(static_cast<int>(index));
 }
 
-const char *QtMetaMethod::parameterName(int index) const
+const char *QtMetaMethod::parameterName(size_t index) const
 {
-    return meta_.parameterNames().at(index);
+    return meta_.parameterNames().at(static_cast<int>(index));
 }
 
 struct VariantArgument
@@ -212,17 +213,17 @@ const char *QtMetaEnum::name() const
     return meta_.name();
 }
 
-int QtMetaEnum::keyCount() const
+size_t QtMetaEnum::keyCount() const
 {
-    return meta_.keyCount();
+    return static_cast<size_t>(meta_.keyCount());
 }
 
-const char *QtMetaEnum::key(int index) const
+const char *QtMetaEnum::key(size_t index) const
 {
-    return meta_.key(index);
+    return meta_.key(static_cast<int>(index));
 }
 
-int QtMetaEnum::value(int index) const
+int QtMetaEnum::value(size_t index) const
 {
-    return meta_.value(index);
+    return meta_.value(static_cast<int>(index));
 }

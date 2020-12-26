@@ -4,7 +4,8 @@
 #include <core/object.h>
 
 #include <QMetaProperty>
-#include <QVector>
+
+#include <vector>
 
 class QtMetaProperty;
 class QtMetaMethod;
@@ -20,18 +21,18 @@ public:
     // MetaObject interface
 public:
     virtual const char *className() const override;
-    virtual int propertyCount() const override;
-    virtual const MetaProperty &property(int index) const override;
-    virtual int methodCount() const override;
-    virtual const MetaMethod &method(int index) const override;
-    virtual int enumeratorCount() const override;
-    virtual const MetaEnum &enumerator(int index) const override;
+    virtual size_t propertyCount() const override;
+    virtual const MetaProperty &property(size_t index) const override;
+    virtual size_t methodCount() const override;
+    virtual const MetaMethod &method(size_t index) const override;
+    virtual size_t enumeratorCount() const override;
+    virtual const MetaEnum &enumerator(size_t index) const override;
 
 private:
     QMetaObject const & meta_;
-    QVector<QtMetaProperty> metaProps_;
-    QVector<QtMetaMethod> metaMethods_;
-    QVector<QtMetaEnum> metaEnums_;
+    std::vector<QtMetaProperty> metaProps_;
+    std::vector<QtMetaMethod> metaMethods_;
+    std::vector<QtMetaEnum> metaEnums_;
 };
 
 class QMetaProperty;
@@ -39,7 +40,7 @@ class QMetaProperty;
 class QtMetaProperty : public MetaProperty
 {
 public:
-    QtMetaProperty(QMetaProperty const & meta = QMetaProperty(), QVector<QtMetaMethod> const & methods = {});
+    QtMetaProperty(QMetaProperty const & meta = QMetaProperty(), std::vector<QtMetaMethod> const & methods = {});
 
     // MetaProperty interface
 public:
@@ -48,7 +49,7 @@ public:
     virtual int type() const override;
     virtual bool isConstant() const override;
     virtual bool hasNotifySignal() const override;
-    virtual int notifySignalIndex() const override;
+    virtual size_t notifySignalIndex() const override;
     virtual const MetaMethod &notifySignal() const override;
     virtual Value read(const Object *object) const override;
     virtual bool write(Object *object, const Value &value) const override;
@@ -69,11 +70,11 @@ public:
     virtual bool isValid() const override;
     virtual bool isSignal() const override;
     virtual bool isPublic() const override;
-    virtual int methodIndex() const override;
+    virtual size_t methodIndex() const override;
     virtual const char *methodSignature() const override;
-    virtual int parameterCount() const override;
-    virtual int parameterType(int index) const override;
-    virtual const char *parameterName(int index) const override;
+    virtual size_t parameterCount() const override;
+    virtual int parameterType(size_t index) const override;
+    virtual const char *parameterName(size_t index) const override;
     virtual Value invoke(Object *object, const Array &args) const override;
 
 private:
@@ -88,9 +89,9 @@ public:
     // MetaEnum interface
 public:
     virtual const char *name() const override;
-    virtual int keyCount() const override;
-    virtual const char *key(int index) const override;
-    virtual int value(int index) const override;
+    virtual size_t keyCount() const override;
+    virtual const char *key(size_t index) const override;
+    virtual int value(size_t index) const override;
 
 private:
     QMetaEnum meta_;
