@@ -1,19 +1,19 @@
-#ifndef HYBRIDGEQT_H
-#define HYBRIDGEQT_H
+#ifndef QTCHANNEL_H
+#define QTCHANNEL_H
 
 #include "HybridgeQt_global.h"
 
-#include <core/bridge.h>
+#include <core/channel.h>
 
 #include <QMap>
 #include <QTimer>
 
 class QtMetaObject;
 
-class HYBRIDGEQT_EXPORT HybridgeQt : Bridge
+class HYBRIDGEQT_EXPORT QtChannel : Channel
 {
 public:
-    HybridgeQt();
+    QtChannel();
 
     // Bridge interface
 protected:
@@ -33,10 +33,10 @@ private:
     {
     public:
         int qt_metacall(QMetaObject::Call call, int methodId, void **args) override;
-        HybridgeQt * bridge;
+        QtChannel * bridge;
     };
     Timer timer_;
     mutable QMap<Object const *, QtMetaObject*> objectMetas_;
 };
 
-#endif // HYBRIDGEQT_H
+#endif // QTCHANNEL_H

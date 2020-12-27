@@ -5,7 +5,7 @@
 
 #include <QVariant>
 
-class Variant
+class QtVariant
 {
 public:
     static Value toValue(QVariant const & v);

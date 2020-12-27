@@ -1,13 +1,13 @@
-#include "hybridgeqt.h"
+#include "qtchannel.h"
 #include "qtmeta.h"
-#include "variant.h"
+#include "qtvariant.h"
 
 #include <QObject>
 #include <QMetaObject>
 #include <QMetaMethod>
 #include <QUuid>
 
-HybridgeQt::HybridgeQt()
+QtChannel::QtChannel()
 {
     timer_.bridge = this;
     QObject::connect(&timer_, &QTimer::timeout, [this] () {
@@ -15,7 +15,7 @@ HybridgeQt::HybridgeQt()
     });
 }
 
-MetaObject *HybridgeQt::metaObject(const Object *object) const
+MetaObject *QtChannel::metaObject(const Object *object) const
 {
     QtMetaObject * m = objectMetas_.value(object);
     if (m == nullptr) {
@@ -25,12 +25,12 @@ MetaObject *HybridgeQt::metaObject(const Object *object) const
     return m;
 }
 
-std::string HybridgeQt::createUuid() const
+std::string QtChannel::createUuid() const
 {
     return QUuid::createUuid().toString().toUtf8().data();
 }
 
-MetaObject::Connection HybridgeQt::connect(const Object *object, size_t signalIndex)
+MetaObject::Connection QtChannel::connect(const Object *object, size_t signalIndex)
 {
     static const int memberOffset = QTimer::staticMetaObject.methodCount();
     QMetaObject::connect(static_cast<QObject const *>(object), static_cast<int>(signalIndex),
@@ -39,24 +39,24 @@ MetaObject::Connection HybridgeQt::connect(const Object *object, size_t signalIn
     return MetaObject::Connection(object, signalIndex);
 }
 
-bool HybridgeQt::disconnect(const MetaObject::Connection &c)
+bool QtChannel::disconnect(const MetaObject::Connection &c)
 {
     QObject const * obj = static_cast<QObject const *>(c.object());
     return QObject::disconnect(obj, obj->metaObject()->method(static_cast<int>(c.signalIndex())),
                         static_cast<QObject*>(nullptr), QMetaMethod());
 }
 
-void HybridgeQt::startTimer(int msec)
+void QtChannel::startTimer(int msec)
 {
     timer_.start(msec);
 }
 
-void HybridgeQt::stopTimer()
+void QtChannel::stopTimer()
 {
     timer_.stop();
 }
 
-void HybridgeQt::dispatch(const QObject *object, const int signalIdx, void **argumentData)
+void QtChannel::dispatch(const QObject *object, const int signalIdx, void **argumentData)
 {
     QMetaMethod method = object->metaObject()->method(signalIdx);
     Array arguments;
@@ -70,12 +70,12 @@ void HybridgeQt::dispatch(const QObject *object, const int signalIdx, void **arg
         } else {
             arg = QVariant(type, argumentData[i + 1]);
         }
-        arguments.emplace_back(Variant::toValue(arg));
+        arguments.emplace_back(QtVariant::toValue(arg));
     }
     signal(object, static_cast<size_t>(signalIdx), std::move(arguments));
 }
 
-int HybridgeQt::Timer::qt_metacall(QMetaObject::Call call, int methodId, void **args)
+int QtChannel::Timer::qt_metacall(QMetaObject::Call call, int methodId, void **args)
 {
     methodId = QObject::qt_metacall(call, methodId, args);
     if (methodId < 0)

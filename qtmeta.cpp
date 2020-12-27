@@ -1,5 +1,5 @@
 #include "qtmeta.h"
-#include "variant.h"
+#include "qtvariant.h"
 
 #include <QMetaObject>
 #include <QMetaProperty>
@@ -99,12 +99,12 @@ const MetaMethod &QtMetaProperty::notifySignal() const
 
 Value QtMetaProperty::read(const Object *object) const
 {
-    return Variant::toValue(meta_.read(static_cast<QObject const *>(object)));
+    return QtVariant::toValue(meta_.read(static_cast<QObject const *>(object)));
 }
 
 bool QtMetaProperty::write(Object *object, const Value &value) const
 {
-    return meta_.write(static_cast<QObject *>(object), Variant::fromValue(value));
+    return meta_.write(static_cast<QObject *>(object), QtVariant::fromValue(value));
 }
 
 QtMetaMethod::QtMetaMethod(const QMetaMethod &meta)
@@ -176,7 +176,7 @@ Value QtMetaMethod::invoke(Object *object, const Array &args) const
     // construct converter objects of QVariant to QGenericArgument
     VariantArgument arguments[10];
     for (int i = 0; i < qMin(static_cast<int>(args.size()), meta_.parameterCount()); ++i) {
-        QVariant variant = Variant::fromValue(args.at(static_cast<size_t>(i)));
+        QVariant variant = QtVariant::fromValue(args.at(static_cast<size_t>(i)));
         variant.convert(meta_.parameterType(i));
         arguments[i].value = variant;
     }
@@ -200,7 +200,7 @@ Value QtMetaMethod::invoke(Object *object, const Array &args) const
                   arguments[5], arguments[6], arguments[7], arguments[8], arguments[9]);
     }
     // now we can call the method
-    return Variant::toValue(returnValue);
+    return QtVariant::toValue(returnValue);
 }
 
 QtMetaEnum::QtMetaEnum(const QMetaEnum &meta)

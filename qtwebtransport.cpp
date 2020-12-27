@@ -1,5 +1,5 @@
 #include "qtwebtransport.h"
-#include "variant.h"
+#include "qtvariant.h"
 
 #include <QJsonObject>
 #include <QWebChannelAbstractTransport>
@@ -18,7 +18,7 @@ QtWebTransport::QtWebTransport(QWebChannelAbstractTransport * transport)
 
 void QtWebTransport::sendMessage(const Message &message)
 {
-    QVariant v = Variant::fromValue(Value::ref(const_cast<Message&>(message)));
+    QVariant v = QtVariant::fromValue(Value::ref(const_cast<Message&>(message)));
     transport_->sendMessage(QJsonObject::fromVariantMap(v.toMap()));
 }
 
@@ -27,5 +27,5 @@ void QtWebTransport::messageReceived(const QJsonObject &message, QWebChannelAbst
     assert(transport == transport_);
     QVariant v(message);
     Map emptyMap;
-    Transport::messageReceived(std::move(Variant::toValue(v).toMap(emptyMap)));
+    Transport::messageReceived(std::move(QtVariant::toValue(v).toMap(emptyMap)));
 }

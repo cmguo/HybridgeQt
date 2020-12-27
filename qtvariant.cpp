@@ -1,6 +1,6 @@
-#include "variant.h"
+#include "qtvariant.h"
 
-Value Variant::toValue(const QVariant &v)
+Value QtVariant::toValue(const QVariant &v)
 {
     if (v.isNull())
         return Value();
@@ -13,6 +13,8 @@ Value Variant::toValue(const QVariant &v)
     case QVariant::LongLong:
     case QVariant::ULongLong:
         return v.toLongLong();
+    case QMetaType::Float:
+        return v.toFloat();
     case QVariant::Double:
         return v.toDouble();
     case QVariant::Bool:
@@ -44,12 +46,14 @@ Value Variant::toValue(const QVariant &v)
     return Value();
 }
 
-QVariant Variant::fromValue(const Value &v)
+QVariant QtVariant::fromValue(const Value &v)
 {
     if (v.isInt())
         return v.toInt();
     else if (v.isLong())
         return v.toLong();
+    else if (v.isFloat())
+        return v.toFloat();
     else if (v.isDouble())
         return v.toDouble();
     else if (v.isString())
@@ -63,7 +67,7 @@ QVariant Variant::fromValue(const Value &v)
             l.append(fromValue(v));
         }
         return l;
-    } else if (v.isArray()) {
+    } else if (v.isMap()) {
         QVariantMap m;
         Map const & a = v.toMap();
         for (auto & v : a) {
