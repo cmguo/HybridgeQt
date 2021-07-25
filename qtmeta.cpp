@@ -1,8 +1,11 @@
 #include "qtmeta.h"
 #include "qtvariant.h"
+#include "qtchannel.h"
 
 #include <QMetaObject>
 #include <QMetaProperty>
+
+/* QtMetaObject */
 
 QtMetaObject::QtMetaObject(const QMetaObject &meta)
     : meta_(meta)
@@ -53,6 +56,84 @@ const MetaEnum &QtMetaObject::enumerator(size_t index) const
     return metaEnums_.at(index);
 }
 
+bool SignalReceiver::connect(const MetaObject::Connection &c) const
+{
+    static const int memberOffset = staticMetaObject.methodCount();
+    QObject const * obj = static_cast<QObject const *>(c.object());
+    QMetaObject::connect(static_cast<QObject const *>(obj), static_cast<int>(c.signalIndex()),
+                         this, memberOffset + static_cast<int>(c.signalIndex()), Qt::AutoConnection, nullptr);
+    return true;
+}
+
+bool SignalReceiver::disconnect(const MetaObject::Connection &c) const
+{
+    QObject const * obj = static_cast<QObject const *>(c.object());
+    return QObject::disconnect(obj, obj->metaObject()->method(static_cast<int>(c.signalIndex())),
+                        this, QMetaMethod());
+}
+
+void SignalReceiver::dispatch(const QObject *object, const int signalIdx, void **argumentData)
+{
+    QMetaMethod method = object->metaObject()->method(signalIdx);
+    Array arguments;
+    arguments.reserve(static_cast<size_t>(method.parameterCount()));
+    // TODO: basic overload resolution based on number of arguments?
+    for (int i = 0; i < method.parameterCount(); ++i) {
+        const QMetaType::Type type = static_cast<QMetaType::Type>(method.parameterType(i));
+        QVariant arg;
+        if (type == QMetaType::QVariant) {
+            arg = *reinterpret_cast<QVariant *>(argumentData[i + 1]);
+        } else {
+            arg = QVariant(type, argumentData[i + 1]);
+        }
+        arguments.emplace_back(QtVariant::toValue(arg));
+    }
+    auto it = std::find(connections_.begin(), connections_.end(),
+              MetaObject::Connection(object, static_cast<size_t>(signalIdx)));
+    if (it != connections_.end())
+        it->signal(std::move(arguments));
+}
+
+int SignalReceiver::qt_metacall(QMetaObject::Call call, int methodId, void **args)
+{
+    methodId = QObject::qt_metacall(call, methodId, args);
+    if (methodId < 0)
+        return methodId;
+
+    if (call == QMetaObject::InvokeMetaMethod) {
+        const QObject *object = sender();
+        Q_ASSERT(object);
+        Q_ASSERT(senderSignalIndex() == methodId);
+        //Q_ASSERT(m_connectionsCounter.contains(object));
+        //Q_ASSERT(m_connectionsCounter.value(object).contains(methodId));
+
+        dispatch(object, methodId, args);
+
+        return -1;
+    }
+    return methodId;
+}
+
+static SignalReceiver & signalReceiver(void * receiver)
+{
+    static std::map<void *, SignalReceiver*> receivers;
+    auto it = receivers.find(receiver);
+    if (it == receivers.end()) {
+        it = receivers.emplace(receiver, new SignalReceiver).first;
+    }
+    return *it->second;
+}
+
+bool QtMetaObject::connect(const Connection &c) const
+{
+    return signalReceiver(c.receiver()).connect(c);
+}
+
+bool QtMetaObject::disconnect(const Connection &c) const
+{
+    return signalReceiver(c.receiver()).disconnect(c);
+}
+
 static QtMetaMethod emptyMethod = QMetaMethod();
 
 QtMetaProperty::QtMetaProperty(const QMetaProperty &meta, std::vector<QtMetaMethod> const & methods)
@@ -72,14 +153,19 @@ bool QtMetaProperty::isValid() const
     return meta_.isValid();
 }
 
-int QtMetaProperty::type() const
+Value::Type QtMetaProperty::type() const
 {
-    return meta_.userType();
+    return QtVariant::type(meta_.userType());
 }
 
 bool QtMetaProperty::isConstant() const
 {
     return meta_.isConstant();
+}
+
+size_t QtMetaProperty::propertyIndex() const
+{
+    return static_cast<size_t>(meta_.propertyIndex());
 }
 
 bool QtMetaProperty::hasNotifySignal() const
@@ -102,7 +188,7 @@ Value QtMetaProperty::read(const Object *object) const
     return QtVariant::toValue(meta_.read(static_cast<QObject const *>(object)));
 }
 
-bool QtMetaProperty::write(Object *object, const Value &value) const
+bool QtMetaProperty::write(Object *object, Value &&value) const
 {
     return meta_.write(static_cast<QObject *>(object), QtVariant::fromValue(value));
 }
@@ -142,14 +228,19 @@ const char *QtMetaMethod::methodSignature() const
     return meta_.methodSignature();
 }
 
+Value::Type QtMetaMethod::returnType() const
+{
+    return QtVariant::type(meta_.returnType());
+}
+
 size_t QtMetaMethod::parameterCount() const
 {
     return static_cast<size_t>(meta_.parameterCount());
 }
 
-int QtMetaMethod::parameterType(size_t index) const
+Value::Type QtMetaMethod::parameterType(size_t index) const
 {
-    return meta_.parameterType(static_cast<int>(index));
+    return QtVariant::type(meta_.parameterType(static_cast<int>(index)));
 }
 
 const char *QtMetaMethod::parameterName(size_t index) const
@@ -171,7 +262,7 @@ struct VariantArgument
 };
 
 
-Value QtMetaMethod::invoke(Object *object, const Array &args) const
+bool QtMetaMethod::invoke(Object *object, Array &&args, Response const & resp) const
 {
     // construct converter objects of QVariant to QGenericArgument
     VariantArgument arguments[10];
@@ -200,7 +291,8 @@ Value QtMetaMethod::invoke(Object *object, const Array &args) const
                   arguments[5], arguments[6], arguments[7], arguments[8], arguments[9]);
     }
     // now we can call the method
-    return QtVariant::toValue(returnValue);
+    resp(QtVariant::toValue(returnValue));
+    return true;
 }
 
 QtMetaEnum::QtMetaEnum(const QMetaEnum &meta)

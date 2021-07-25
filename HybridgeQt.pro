@@ -39,7 +39,7 @@ unix {
 !isEmpty(target.path): INSTALLS += target
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Hybridge/release/ -lHybridge
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Hybridge/debug/ -lHybridge
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Hybridge/debug/ -lHybridged
 else:unix: LIBS += -L$$OUT_PWD/../Hybridge/ -lHybridge
 
 INCLUDEPATH += $$PWD/../Hybridge

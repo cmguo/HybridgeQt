@@ -8,6 +8,8 @@
 class QtVariant
 {
 public:
+    static Value::Type type(int type);
+
     static Value toValue(QVariant const & v);
 
     static QVariant fromValue(Value const & v);

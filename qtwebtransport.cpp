@@ -4,6 +4,10 @@
 #include <QJsonObject>
 #include <QWebChannelAbstractTransport>
 
+// new window.QWebChannel(qt.webChannelTransport,(function(e){
+//
+//})
+
 QtWebTransport::QtWebTransport(QWebChannelAbstractTransport * transport)
     : transport_(transport)
 {
@@ -18,7 +22,7 @@ QtWebTransport::QtWebTransport(QWebChannelAbstractTransport * transport)
 
 void QtWebTransport::sendMessage(const Message &message)
 {
-    QVariant v = QtVariant::fromValue(Value::ref(const_cast<Message&>(message)));
+    QVariant v = QtVariant::fromValue(Value(const_cast<Message&>(message)));
     transport_->sendMessage(QJsonObject::fromVariantMap(v.toMap()));
 }
 

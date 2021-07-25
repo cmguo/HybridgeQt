@@ -1,5 +1,37 @@
 #include "qtvariant.h"
 
+Value::Type QtVariant::type(int type)
+{
+    if (QMetaType::typeFlags(type).testFlag(QMetaType::PointerToQObject))
+        return Value::Object_;
+    switch (type) {
+    case QVariant::Int:
+    case QVariant::UInt:
+        return Value::Int;
+    case QVariant::LongLong:
+    case QVariant::ULongLong:
+        return Value::Long;
+    case QMetaType::Float:
+        return Value::Float;
+    case QVariant::Double:
+        return Value::Double;
+    case QVariant::Bool:
+        return Value::Bool;
+    case QVariant::ByteArray:
+    case QVariant::String:
+        return Value::String;
+    case QVariant::List:
+    case QVariant::StringList:
+    case QMetaType::QJsonArray:
+        return Value::Array_;
+    case QVariant::Map:
+    case QMetaType::QVariantHash:
+    case QMetaType::QJsonObject:
+        return Value::Map_;
+    }
+    return Value::None;
+}
+
 Value QtVariant::toValue(const QVariant &v)
 {
     if (v.isNull())

@@ -1,7 +1,7 @@
 #ifndef QTMETA_H
 #define QTMETA_H
 
-#include <core/object.h>
+#include <core/metaobject.h>
 
 #include <QMetaProperty>
 
@@ -28,11 +28,26 @@ public:
     virtual size_t enumeratorCount() const override;
     virtual const MetaEnum &enumerator(size_t index) const override;
 
+    virtual bool connect(const Connection &c) const override;
+    virtual bool disconnect(const Connection &c) const override;
+
 private:
     QMetaObject const & meta_;
     std::vector<QtMetaProperty> metaProps_;
     std::vector<QtMetaMethod> metaMethods_;
     std::vector<QtMetaEnum> metaEnums_;
+};
+
+class SignalReceiver : public QObject
+{
+public:
+    bool connect(const MetaObject::Connection &c) const;
+    bool disconnect(const MetaObject::Connection &c) const;
+private:
+    int qt_metacall(QMetaObject::Call call, int methodId, void **args) override;
+    void dispatch(const QObject *object, const int signalIdx, void **argumentData);
+private:
+    std::vector<MetaObject::Connection> connections_;
 };
 
 class QMetaProperty;
@@ -46,13 +61,14 @@ public:
 public:
     virtual const char *name() const override;
     virtual bool isValid() const override;
-    virtual int type() const override;
+    virtual Value::Type type() const override;
     virtual bool isConstant() const override;
+    virtual size_t propertyIndex() const override;
     virtual bool hasNotifySignal() const override;
     virtual size_t notifySignalIndex() const override;
     virtual const MetaMethod &notifySignal() const override;
     virtual Value read(const Object *object) const override;
-    virtual bool write(Object *object, const Value &value) const override;
+    virtual bool write(Object *object, Value &&value) const override;
 
 private:
     QMetaProperty meta_;
@@ -72,10 +88,11 @@ public:
     virtual bool isPublic() const override;
     virtual size_t methodIndex() const override;
     virtual const char *methodSignature() const override;
+    virtual Value::Type returnType() const override;
     virtual size_t parameterCount() const override;
-    virtual int parameterType(size_t index) const override;
+    virtual Value::Type parameterType(size_t index) const override;
     virtual const char *parameterName(size_t index) const override;
-    virtual Value invoke(Object *object, const Array &args) const override;
+    virtual bool invoke(Object *object, Array &&args, Response const & resp) const override;
 
 private:
     QMetaMethod meta_;
