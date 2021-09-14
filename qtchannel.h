@@ -10,7 +10,7 @@
 
 class QtMetaObject;
 
-class HYBRIDGEQT_EXPORT QtChannel : Channel
+class HYBRIDGEQT_EXPORT QtChannel : public Channel
 {
 public:
     QtChannel();
@@ -19,6 +19,7 @@ public:
 protected:
     virtual MetaObject *metaObject(const Object *object) const override;
     virtual std::string createUuid() const override;
+    virtual ProxyObject * createProxyObject(Map &&meta) const override;
     virtual void startTimer(int msec) override;
     virtual void stopTimer() override;
 

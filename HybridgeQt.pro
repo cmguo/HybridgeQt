@@ -22,6 +22,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     qtchannel.cpp \
     qtmeta.cpp \
+    qtproxyobject.cpp \
     qtvariant.cpp \
     qtwebtransport.cpp
 
@@ -29,6 +30,7 @@ HEADERS += \
     HybridgeQt_global.h \
     qtchannel.h \
     qtmeta.h \
+    qtproxyobject.h \
     qtvariant.h \
     qtwebtransport.h
 
@@ -44,3 +46,15 @@ else:unix: LIBS += -L$$OUT_PWD/../Hybridge/ -lHybridge
 
 INCLUDEPATH += $$PWD/../Hybridge
 DEPENDPATH += $$PWD/../Hybridge
+
+INCLUDEPATH += $$PWD/../QtPromise/src
+INCLUDEPATH += $$PWD/../qtpromise/src/qtpromise $$PWD/../qtpromise/include
+DEPENDPATH += $$PWD/../qtpromise/src/qtpromise
+
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QtComposition/release/ -lQtComposition
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QtComposition/debug/ -lQtCompositiond
+else:unix: LIBS += -L$$OUT_PWD/../QtComposition/ -lQtComposition
+
+INCLUDEPATH += $$PWD/../QtComposition
+DEPENDPATH += $$PWD/../QtComposition

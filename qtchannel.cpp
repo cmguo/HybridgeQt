@@ -1,5 +1,6 @@
 #include "qtchannel.h"
 #include "qtmeta.h"
+#include "qtproxyobject.h"
 #include "qtvariant.h"
 
 #include <QObject>
@@ -27,6 +28,11 @@ MetaObject *QtChannel::metaObject(const Object *object) const
 std::string QtChannel::createUuid() const
 {
     return QUuid::createUuid().toString().toUtf8().data();
+}
+
+ProxyObject *QtChannel::createProxyObject(Map &&meta) const
+{
+    return new QtProxyObject(std::move(meta));
 }
 
 void QtChannel::startTimer(int msec)
