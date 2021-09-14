@@ -1,12 +1,14 @@
 #ifndef QTWEBTRANSPORT_H
 #define QTWEBTRANSPORT_H
 
+#include "HybridgeQt_global.h"
+
 #include <core/transport.h>
 
 class QWebChannelAbstractTransport;
 class QJsonObject;
 
-class QtWebTransport : public Transport
+class HYBRIDGEQT_EXPORT QtWebTransport : public Transport
 {
 public:
     QtWebTransport(QWebChannelAbstractTransport * transport);

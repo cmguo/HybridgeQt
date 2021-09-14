@@ -47,7 +47,7 @@ private:
     int qt_metacall(QMetaObject::Call call, int methodId, void **args) override;
     void dispatch(const QObject *object, const int signalIdx, void **argumentData);
 private:
-    std::vector<MetaObject::Connection> connections_;
+    mutable std::vector<MetaObject::Connection> connections_;
 };
 
 class QMetaProperty;

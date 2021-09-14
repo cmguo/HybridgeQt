@@ -60,6 +60,7 @@ bool SignalReceiver::connect(const MetaObject::Connection &c) const
 {
     static const int memberOffset = staticMetaObject.methodCount();
     QObject const * obj = static_cast<QObject const *>(c.object());
+    connections_.emplace_back(c);
     QMetaObject::connect(static_cast<QObject const *>(obj), static_cast<int>(c.signalIndex()),
                          this, memberOffset + static_cast<int>(c.signalIndex()), Qt::AutoConnection, nullptr);
     return true;
@@ -68,6 +69,9 @@ bool SignalReceiver::connect(const MetaObject::Connection &c) const
 bool SignalReceiver::disconnect(const MetaObject::Connection &c) const
 {
     QObject const * obj = static_cast<QObject const *>(c.object());
+    auto it = std::find(connections_.begin(), connections_.end(), c);
+    if (it != connections_.end())
+        connections_.erase(it);
     return QObject::disconnect(obj, obj->metaObject()->method(static_cast<int>(c.signalIndex())),
                         this, QMetaMethod());
 }
@@ -89,7 +93,7 @@ void SignalReceiver::dispatch(const QObject *object, const int signalIdx, void *
         arguments.emplace_back(QtVariant::toValue(arg));
     }
     auto it = std::find(connections_.begin(), connections_.end(),
-              MetaObject::Connection(object, static_cast<size_t>(signalIdx)));
+              MetaObject::Connection::Signal(object, static_cast<size_t>(signalIdx)));
     if (it != connections_.end())
         it->signal(std::move(arguments));
 }
