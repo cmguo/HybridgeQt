@@ -6,14 +6,6 @@
 
 using namespace QtPromise;
 
-const QtProxyObject::qt_meta_stringdata_JsObject_t QtProxyObject::qt_meta_stringdata_JsObject = {};
-const uint QtProxyObject::qt_meta_data_JsObject[] = {{}};
-
-const QMetaObject QtProxyObject::staticMetaObject = {
-    { &QObject::staticMetaObject, qt_meta_stringdata_JsObject.data,
-      qt_meta_data_JsObject, qt_static_metacall, nullptr, nullptr }
-};
-
 QtProxyObject::QtProxyObject(Map &&classinfo)
     : ProxyObject(std::move(classinfo))
     , metaobj_(new QtProxyMetaObject(metaObj()))
@@ -67,7 +59,7 @@ bool QtProxyObject::connectToSignal(int signalIndex)
     if (!md.isSignal())
         return false;
     return metaObj()->connect(MetaObject::Connection(this, index, this, [](
-                                              void * receiver, Object const * object, size_t index, Array && args) {
+                                              void * receiver, Object const *, size_t index, Array && args) {
         QtProxyObject * proxy = reinterpret_cast<QtProxyObject*>(receiver);
         QVariantList argv;
         for (size_t j = 0; j < args.size(); ++j)
@@ -166,7 +158,7 @@ const QMetaObject * QtProxyObject::metaObject() const
 
 void * QtProxyObject::qt_metacast(const char * cname)
 {
-    if (!qstrcmp(cname, "JsObject"))
+    if (!qstrcmp(cname, "QtProxyObject"))
         return static_cast<void *>(this);
     return QObject::qt_metacast(cname);
 }
