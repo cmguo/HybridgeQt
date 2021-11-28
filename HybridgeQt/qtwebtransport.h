@@ -15,7 +15,7 @@ public:
 
     // Transport interface
 public:
-    virtual void sendMessage(const Message &message) override;
+    virtual void sendMessage(Message &&message) override;
 
 private:
     void messageReceived(const QJsonObject &message, QWebChannelAbstractTransport *transport);

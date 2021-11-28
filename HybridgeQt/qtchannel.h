@@ -15,6 +15,9 @@ class HYBRIDGEQT_EXPORT QtChannel : public Channel
 public:
     QtChannel();
 
+public:
+    void connectTo(Transport *transport, std::function<void(QMap<QByteArray, QObject*>)> receive = nullptr);
+
     // Bridge interface
 protected:
     virtual MetaObject *metaObject(const Object *object) const override;

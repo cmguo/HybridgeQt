@@ -40,7 +40,7 @@ QPromise<QVariant> QtProxyObject::invokeMethod(QByteArray const & method, const 
         Array argv;
         for (size_t j = 0; j < md->parameterCount(); ++j)
             argv.emplace_back(QtVariant::toValue(args[static_cast<int>(j)]));
-        bool ok = md->invoke(this, std::move(argv), [=](Value && result) {
+        bool ok = md->invoke(static_cast<ProxyObject*>(this), std::move(argv), [=](Value && result) {
             resolve(QtVariant::fromValue(result));
         });
         if (!ok) {
@@ -140,7 +140,7 @@ int QtProxyObject::internalInvoke(int index, void **v)
     {
         QVariantList args;
         for (int i = 0; i < method.parameterCount(); ++i) {
-            args.append(QVariant(method.parameterType(i), v[i]));
+            args.append(QVariant(method.parameterType(i), v[i + 1]));
         }
         invokeMethod(method.name(), args);
         return index;
@@ -207,13 +207,23 @@ QtProxyMetaObject::QtProxyMetaObject(MetaObject * meta)
     // properties
     for (size_t i = 0; i < meta->propertyCount(); ++i) {
         MetaProperty const & mp = meta->property(i);
-        //builder.addProperty(mp.type(), it.key().toUtf8(), 0);
+        builder.addProperty(QMetaType::typeName(QtVariant::type(mp.type())), mp.name(), 0);
     }
     // methods
     for (size_t i = 0; i < meta->methodCount(); ++i) {
         MetaMethod const & md = meta->method(i);
-        //builder.addSlot(it.key().toUtf8(), 0);
-        //builder.addSignal(it.key().toUtf8());
+        QByteArray type = QMetaType::typeName(QtVariant::type(md.returnType()));
+        QList<QByteArray> types;
+        QList<QByteArray> names;
+        int flags = 0;
+        for (size_t j = 0; j < md.parameterCount(); ++j) {
+            types.append(QMetaType::typeName(QtVariant::type(md.parameterType(j))));
+            names.append(md.parameterName(j));
+        }
+        if (md.isSignal())
+            builder.addSignal(QByteArray(md.name()) + "(" + types.join(",") + ")", names.isEmpty() ? nullptr : names.join(","));
+        else
+            builder.addSlot(type, QByteArray(md.name()) + "(" + types.join(",") + ")", names.isEmpty() ? nullptr : names.join(","), flags);
     }
     builder.buildMetaData(this);
 }

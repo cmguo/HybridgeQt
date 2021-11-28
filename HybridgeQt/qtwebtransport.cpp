@@ -20,7 +20,7 @@ QtWebTransport::QtWebTransport(QWebChannelAbstractTransport * transport)
     });
 }
 
-void QtWebTransport::sendMessage(const Message &message)
+void QtWebTransport::sendMessage(Message &&message)
 {
     QVariant v = QtVariant::fromValue(Value(const_cast<Message&>(message)));
     transport_->sendMessage(QJsonObject::fromVariantMap(v.toMap()));

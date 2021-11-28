@@ -20,6 +20,8 @@ class QtProxyObject : public QObject, public ProxyObject
 public:
     explicit QtProxyObject(Map &&classinfo);
 
+    virtual void * handle() const override { return const_cast<QtProxyObject*>(this); }
+
 public:
     QVariant readProperty(QByteArray const & property);
 

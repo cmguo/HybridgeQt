@@ -32,6 +32,33 @@ Value::Type QtVariant::type(int type)
     return Value::None;
 }
 
+int QtVariant::type(Value::Type type)
+{
+    switch (type) {
+    case Value::None:
+        return QVariant::Invalid;
+    case Value::Bool:
+        return QVariant::Bool;
+    case Value::Int:
+        return QVariant::Int;
+    case Value::Long:
+        return QVariant::LongLong;
+    case Value::Float:
+        return QMetaType::Float;
+    case Value::Double:
+        return QVariant::Double;
+    case Value::String:
+        return QVariant::String;
+    case Value::Array_:
+        return QVariant::List;
+    case Value::Map_:
+        return QVariant::Map;
+    case Value::Object_:
+        return qMetaTypeId<QObject*>();
+    }
+    return QVariant::Invalid;
+}
+
 Value QtVariant::toValue(const QVariant &v)
 {
     if (v.isNull())

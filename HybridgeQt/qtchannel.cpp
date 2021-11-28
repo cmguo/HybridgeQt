@@ -10,9 +10,26 @@
 
 QtChannel::QtChannel()
 {
+    QMetaType::registerConverter<QVariantMap, QMap<QByteArray, QObject*>>([] (auto & map) {
+        QMap<QByteArray, QObject*> result;
+        auto it = map.begin();
+        for (; it != map.end(); ++it) {
+            result.insert(it.key().toUtf8(), it.value().template value<QObject*>());
+        }
+        return result;
+    });
     QObject::connect(&timer_, &QTimer::timeout, [this] () {
         timerEvent();
     });
+}
+
+void QtChannel::connectTo(Transport *transport, std::function<void (QMap<QByteArray, QObject*>)> receive)
+{
+    MetaMethod::Response receive2 = receive ? [receive](Value && result) {
+        qDebug() << QtVariant::fromValue(result);
+        receive(QtVariant::fromValue(result).value<QMap<QByteArray, QObject*>>());
+    } : MetaMethod::Response(nullptr);
+    return Channel::connectTo(transport, receive2);
 }
 
 MetaObject *QtChannel::metaObject(const Object *object) const
